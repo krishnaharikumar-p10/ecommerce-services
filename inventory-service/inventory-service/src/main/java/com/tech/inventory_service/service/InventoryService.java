@@ -1,11 +1,15 @@
 package com.tech.inventory_service.service;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.tech.inventory_service.dto.InventoryEventMessage;
 import com.tech.inventory_service.dto.InventoryRequest;
 import com.tech.inventory_service.dto.InventoryResponse;
+import com.tech.inventory_service.exceptions.SKUNotFoundException;
 import com.tech.inventory_service.model.Inventory;
 import com.tech.inventory_service.repository.InventoryRepository;
 
@@ -21,9 +25,9 @@ public class InventoryService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(InventoryService.class);
 
-	public boolean isinStock(String skuCode) {
+	public boolean isinStock(String skuCode) throws SKUNotFoundException {
 		
-		Inventory item=  inventoryrepository.findByskuCode(skuCode).orElse(null);
+		Inventory item=  inventoryrepository.findByskuCode(skuCode).orElseThrow(() -> new SKUNotFoundException(skuCode));
 		if (item ==null) {
 			return false;
 		}
@@ -33,9 +37,9 @@ public class InventoryService {
 	
 	
 	@CachePut(value="inventory" , key="#skuCode")
-	public InventoryResponse reduceStock(String skuCode, Integer quantity) {
+	public InventoryResponse reduceStock(String skuCode, Integer quantity) throws SKUNotFoundException {
 		
-		Inventory inventory = inventoryrepository.findByskuCode(skuCode).orElseThrow();
+		Inventory inventory = inventoryrepository.findByskuCode(skuCode).orElseThrow(() -> new SKUNotFoundException(skuCode));
 		
 		Integer new_quantity =inventory.getQuantity() - quantity;
 
@@ -48,28 +52,28 @@ public class InventoryService {
 		response.setSkuCode(inventory.getSkuCode());
 		response.setQuantity(new_quantity);
 		logger.info("Reduced stock for {} " + skuCode);
+	
 		return response;	
 		
 	}
 
 	@Cacheable(value="inventory" , key="#skuCode")
-	public InventoryResponse checkStock(String skuCode) {
+	public InventoryResponse checkStock(String skuCode) throws SKUNotFoundException {
 		
-		Inventory inventory= inventoryrepository.findByskuCode(skuCode).orElseThrow();
+		Inventory inventory= inventoryrepository.findByskuCode(skuCode).orElseThrow(() -> new SKUNotFoundException(skuCode));
 		
 		InventoryResponse dto = new InventoryResponse();
 		dto.setId(inventory.getId());
 		dto.setSkuCode(inventory.getSkuCode());
 		dto.setQuantity(inventory.getQuantity());
-		logger.info("Returning details of  {} " + skuCode);
 		return dto;
 	}
 
 	
 	@CachePut(value="inventory" , key="#skuCode")
-	public InventoryResponse increaseStocks(String skuCode, InventoryRequest request) {
+	public InventoryResponse increaseStocks(String skuCode, InventoryRequest request) throws SKUNotFoundException {
 		
-		Inventory inventory=inventoryrepository.findByskuCode(skuCode).orElseThrow();
+		Inventory inventory=inventoryrepository.findByskuCode(skuCode).orElseThrow(() -> new SKUNotFoundException(skuCode));
 		Integer newQuantity= request.getQuantity()+ inventory.getQuantity();
 		inventory.setQuantity(newQuantity);
 		inventoryrepository.save(inventory);

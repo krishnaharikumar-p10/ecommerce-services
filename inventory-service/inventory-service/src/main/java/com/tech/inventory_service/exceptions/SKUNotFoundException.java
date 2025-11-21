@@ -1,0 +1,10 @@
+package com.tech.inventory_service.exceptions;
+
+
+public class SKUNotFoundException extends Exception {
+	
+	public SKUNotFoundException(String skuCode) {
+		super("No product found with SKU '" + skuCode + "'. Please check the SKU and try again.");
+	}
+
+}

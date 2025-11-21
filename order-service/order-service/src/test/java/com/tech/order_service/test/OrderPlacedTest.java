@@ -84,7 +84,7 @@ class OrderPlacedTest {
                 .thenReturn(inventory);
 
      
-        doNothing().when(mockProducer).sendOrder(any());
+        doNothing().when(mockProducer).sendOrderEvent(any());
 
       
         mockMvc.perform(post("/api/order")
@@ -97,7 +97,7 @@ class OrderPlacedTest {
                 .andExpect(jsonPath("$.message").value("Thank you! Your order is confirmed."));
 
     
-        verify(mockProducer, times(1)).sendOrder(any());
+        verify(mockProducer, times(1)).sendOrderEvent(any());
 
 
         Orders savedOrder = orderRepository.findAll().get(0);
@@ -127,7 +127,7 @@ class OrderPlacedTest {
         when(inventoryServiceClient.getInventory(anyString(),  anyString()))
                 .thenReturn(inventory);
 
-        doNothing().when(mockProducer).sendOrder(any());
+        doNothing().when(mockProducer).sendOrderEvent(any());
 
         mockMvc.perform(post("/api/order")
                         .header("Authorization", "Bearer test-token")
@@ -138,7 +138,7 @@ class OrderPlacedTest {
                 .andExpect(jsonPath("$.status").value("FAILED"))
         		.andExpect(jsonPath("$.message").value("Some items are out of stock."));
 
-        verify(mockProducer, never()).sendOrder(any());
+        verify(mockProducer, never()).sendOrderEvent(any());
         
         Orders savedOrder = orderRepository.findAll().get(0);
         Assertions.assertEquals("FAILED", savedOrder.getStatus());
@@ -162,7 +162,7 @@ class OrderPlacedTest {
         when(inventoryServiceClient.getInventory(anyString(), anyString()))
                 .thenReturn(inventory);
 
-        doNothing().when(mockProducer).sendOrder(any());
+        doNothing().when(mockProducer).sendOrderEvent(any());
 
         mockMvc.perform(post("/api/order")
                         .header("Authorization", "Bearer test-token")
@@ -173,7 +173,7 @@ class OrderPlacedTest {
                 .andExpect(jsonPath("$.status").value("FAILED"))
                 .andExpect(jsonPath("$.message").value("Sorry, one or more items are unavailable."));
 
-        verify(mockProducer, never()).sendOrder(any());
+        verify(mockProducer, never()).sendOrderEvent(any());
         
         Orders savedOrder = orderRepository.findAll().get(0);
         Assertions.assertEquals("FAILED", savedOrder.getStatus());

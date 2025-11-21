@@ -28,7 +28,7 @@ public class ProductController {
 	
 	private final ProductService productservice;
 	
-	//private static final Logger logger= LoggerFactory.getLogger(ProductController.class);
+	private static final Logger logger= LoggerFactory.getLogger(ProductController.class);
 	
 	@PostMapping
 	public void createProduct(@RequestBody ProductRequest productrequest) {
@@ -37,6 +37,7 @@ public class ProductController {
 	
 	@GetMapping("/{skuCode}")
 	public Optional<ProductResponse> getProductById(@PathVariable String skuCode) {
+		logger.info("Returning product details of {}", skuCode);
 		return productservice.getProductbyId(skuCode);
 	}
 	

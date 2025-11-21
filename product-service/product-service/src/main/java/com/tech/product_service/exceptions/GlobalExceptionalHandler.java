@@ -1,4 +1,4 @@
-package com.tech.inventory_service.exceptions;
+package com.tech.product_service.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,14 +6,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
-
+public class GlobalExceptionalHandler {
+	
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
         return new ResponseEntity<>("Something went wrong: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    public ResponseEntity<String> handleSKUNotFoundException(SKUNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-    
 }

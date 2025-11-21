@@ -1,4 +1,4 @@
-package com.tech.order_service.dto;
+package com.tech.inventory_service.dto;
 
 public class OrderEventMessage {
     private String orderNumber;

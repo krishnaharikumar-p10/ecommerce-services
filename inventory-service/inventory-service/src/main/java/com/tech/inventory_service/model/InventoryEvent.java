@@ -23,8 +23,10 @@ public class InventoryEvent {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String eventId;          
-    private String orderNumber;
+    private String skuCode;
+    private Integer quantity;
     private String eventType;
+    private String orderNumber;
     private String details;
     private LocalDateTime processedAt;
 }

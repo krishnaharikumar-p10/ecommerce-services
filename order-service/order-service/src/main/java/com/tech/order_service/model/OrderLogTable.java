@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class OrderEvent {
+public class OrderLogTable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -24,6 +24,6 @@ public class OrderEvent {
     private String eventId;       
     private String orderNumber;
     private String eventType;     
-    private String details;      
+    private String details;  
     private LocalDateTime processedAt;
 }

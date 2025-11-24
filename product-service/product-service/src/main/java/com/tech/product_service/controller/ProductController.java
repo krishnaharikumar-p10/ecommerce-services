@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import com.tech.product_service.dto.ProductRequest;
 import com.tech.product_service.dto.ProductResponse;
 import com.tech.product_service.service.ProductService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,20 +31,21 @@ public class ProductController {
 	
 	private final ProductService productservice;
 	
+    private final HttpServletRequest request;
+
+    
 	private static final Logger logger= LoggerFactory.getLogger(ProductController.class);
-	
-	@PostMapping
-	public void createProduct(@RequestBody ProductRequest productrequest) {
-		productservice.createProduct(productrequest);
-	}
+
 	
 	@GetMapping("/{skuCode}")
-	public Optional<ProductResponse> getProductById(@PathVariable String skuCode) {
+	public Optional<ProductResponse> getProductId(@PathVariable String skuCode) {
 		logger.info("Returning product details of {}", skuCode);
 		return productservice.getProductbyId(skuCode);
 	}
 	
-	@GetMapping
+
+	
+	@GetMapping()
 	public Page<ProductResponse> getProductPages(
 			@RequestParam(defaultValue="0") int page,
 			@RequestParam(defaultValue="10") int size,
@@ -50,5 +54,11 @@ public class ProductController {
 		
 		return productservice.getProduct(page,size,sortBy,sortDir);
 	}
+
 	
+	@GetMapping("/get/{skuCode}")
+	public ProductResponse getProductDetail(@PathVariable String skuCode) {
+		return productservice.getProductDetail(skuCode);
+	}
+
 }

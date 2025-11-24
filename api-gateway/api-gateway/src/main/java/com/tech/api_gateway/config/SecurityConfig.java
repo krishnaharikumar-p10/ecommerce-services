@@ -24,20 +24,22 @@ public class SecurityConfig {
             .authorizeExchange(exchange -> exchange
             		
             	//product-service paths
-                .pathMatchers(HttpMethod.POST, "/product-service/api/product/**").hasRole("PRODUCT_ADMIN")
-                .pathMatchers(HttpMethod.GET, "/product-service/api/product/**").hasAnyRole("CUSTOMER", "PRODUCT_ADMIN")
+                .pathMatchers(HttpMethod.GET, "/product-service/api/product/**").hasAnyRole("CUSTOMER", "CATALOG_MANAGER")
              
                 //inventory-service paths
-                .pathMatchers(HttpMethod.GET, "/inventory-service/api/inventory/*").hasAnyRole("INVENTORY_MANAGER","PRODUCT_ADMIN")
-                .pathMatchers(HttpMethod.GET, "/inventory-service/api/inventory/check/*").hasAnyRole("INVENTORY_MANAGER","CUSTOMER")
-                .pathMatchers(HttpMethod.PUT, "/inventory-service/api/inventory/increase/*").hasRole("INVENTORY_MANAGER")
+                .pathMatchers(HttpMethod.GET, "/inventory-service/api/inventory/check/*").hasAnyRole("INVENTORY_MANAGER")
                 
                 //order-service-paths
                 .pathMatchers(HttpMethod.POST, "/order-service/api/order").hasRole("CUSTOMER")
+                .pathMatchers(HttpMethod.GET, "/order-service/api/order/myorders").hasRole("CUSTOMER")
                 
-                //aggregated response 
-                .pathMatchers(HttpMethod.GET,"/product-info/{skuCode}").hasRole("PRODUCT_ADMIN")
+                //payment-service-paths
+                .pathMatchers(HttpMethod.POST, "/payment-service/api/pay/**").hasRole("CUSTOMER")
 
+                //shipping-servic-paths
+                .pathMatchers(HttpMethod.POST, "/shipping-service/shipping/ship/**").hasRole("SHIPPING_STAFF")
+           
+                
                 .anyExchange().authenticated()
             )
             .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION);

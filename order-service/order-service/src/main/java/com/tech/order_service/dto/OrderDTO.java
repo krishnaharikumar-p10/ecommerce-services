@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDTO {
+	private String address;
 	private List<OrderItemsDTO> orderItems;
 }

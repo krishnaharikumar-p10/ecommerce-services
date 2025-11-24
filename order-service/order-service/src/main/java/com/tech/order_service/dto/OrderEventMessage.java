@@ -1,19 +1,35 @@
 package com.tech.order_service.dto;
 
+import java.math.BigDecimal;
+
 public class OrderEventMessage {
-    private String orderNumber;
+	
+	
+	private String orderNumber;
     private String eventId;
     private String eventType; 
-    private OrderDTO orderDto;
+    private BigDecimal totalAmount;
+    private String customerName;
+    private String correlationId;
+
+    public OrderEventMessage() {}
     
-   public OrderEventMessage() {}
     
-   public OrderEventMessage(String orderNumber, String eventId, String eventType, OrderDTO orderDto) {
+	public OrderEventMessage(String orderNumber, String eventId, String eventType, BigDecimal totalAmount,
+			String customerName, String correlationId) {
 		super();
 		this.orderNumber = orderNumber;
 		this.eventId = eventId;
 		this.eventType = eventType;
-		this.orderDto = orderDto;
+		this.totalAmount = totalAmount;
+		this.customerName = customerName;
+		this.correlationId = correlationId;
+	}
+	public String getCorrelationId() {
+		return correlationId;
+	}
+	public void setCorrelationId(String correlationId) {
+		this.correlationId = correlationId;
 	}
 	public String getOrderNumber() {
 		return orderNumber;
@@ -33,10 +49,17 @@ public class OrderEventMessage {
 	public void setEventType(String eventType) {
 		this.eventType = eventType;
 	}
-	public OrderDTO getOrderDto() {
-		return orderDto;
+	public BigDecimal getTotalAmount() {
+		return totalAmount;
 	}
-	public void setOrderDto(OrderDTO orderDto) {
-		this.orderDto = orderDto;
+	public void setTotalAmount(BigDecimal totalAmount) {
+		this.totalAmount = totalAmount;
+	}
+	public String getCustomerName() {
+		return customerName;
+	}
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
 	}
 }
+   

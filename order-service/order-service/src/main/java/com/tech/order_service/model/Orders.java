@@ -24,11 +24,16 @@ public class Orders {
 	 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	private Long Id;
 	private String orderNumber;
+	private String customerName;
+	private String address;
+	private String status;
+	private String trackingNumber;
+	private String transactionId;
 	@OneToMany(cascade =CascadeType.ALL)
 	@JoinColumn(name = "orders_id")
 	private List<OrderItems> orderItems;
-	private String status;
+
 
 }

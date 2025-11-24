@@ -25,22 +25,17 @@ public class InventoryController {
 	
 	private final InventoryService inventoryservice;
 
-	@GetMapping("/{skuCode}")
-	public  boolean isinStock(@PathVariable String skuCode) throws SKUNotFoundException {
-		return inventoryservice.isinStock(skuCode);
-	}
-	
 	
 	@GetMapping("/check/{skuCode}")
 	public InventoryResponse checkStock(@PathVariable String skuCode) throws SKUNotFoundException {
 		logger.info("Returning stock details of  {} " + skuCode);
 		return inventoryservice.checkStock(skuCode);
 	}
-	
+	/*
 	@PutMapping("increase/{skuCode}")
 	public InventoryResponse increaseStocks(@PathVariable String skuCode,@RequestBody InventoryRequest request) throws SKUNotFoundException {
 		return inventoryservice.increaseStocks(skuCode,request);
 	}
-	
+	*/
 	
 }

@@ -25,10 +25,10 @@ public class AggregationController {
 
         
         
-        Mono<ProductResponse> productMono = webClientBuilder.build().get().uri("http://product-service/api/product/{skuCode}",skuCode)
+        Mono<ProductResponse> productMono = webClientBuilder.build().get().uri("http://product-service/api/product/get/{skuCode}",skuCode)
         		.retrieve().bodyToMono(ProductResponse.class);
         
-        Mono<InventoryResponse> inventoryMono =  webClientBuilder.build().get().uri("http://inventory-service/api/inventory/{skuCode}",skuCode)
+        Mono<InventoryResponse> inventoryMono =  webClientBuilder.build().get().uri("http://inventory-service/api/inventory/check/{skuCode}",skuCode)
         		.retrieve().bodyToMono(InventoryResponse.class);
         
         return  Mono.zip(productMono, inventoryMono,

@@ -3,17 +3,21 @@ package com.tech.inventory_service.dto;
 public class InventoryResponse {
 	private Long id;
 	private String skuCode;
-	private Integer quantity;
-	
+	private Integer totalQuantity;
+	private Integer reservedQuantity;
+	private Integer availableQuantity;
+
 	public InventoryResponse() {}
 	
-	public InventoryResponse(Long id, String skuCode, Integer quantity) {
+	public InventoryResponse(Long id, String skuCode, Integer totalQuantity, Integer reservedQuantity,
+			Integer availableQuantity) {
 		super();
 		this.id = id;
 		this.skuCode = skuCode;
-		this.quantity = quantity;
+		this.totalQuantity = totalQuantity;
+		this.reservedQuantity = reservedQuantity;
+		this.availableQuantity = availableQuantity;
 	}
-
 	public Long getId() {
 		return id;
 	}
@@ -26,16 +30,25 @@ public class InventoryResponse {
 	public void setSkuCode(String skuCode) {
 		this.skuCode = skuCode;
 	}
-	public Integer getQuantity() {
-		return quantity;
+	public Integer getTotalQuantity() {
+		return totalQuantity;
 	}
-	public void setQuantity(Integer quantity) {
-		this.quantity = quantity;
+	public void setTotalQuantity(Integer totalQuantity) {
+		this.totalQuantity = totalQuantity;
 	}
-	
-	@Override
-	public String toString() {
-		return "InventoryResponse [id=" + id + ", skuCode=" + skuCode + ", quantity=" + quantity + "]";
+	public Integer getReservedQuantity() {
+		return reservedQuantity;
 	}
-	
+	public void setReservedQuantity(Integer reservedQuantity) {
+		this.reservedQuantity = reservedQuantity;
+	}
+	public Integer getAvailableQuantity() {
+		return availableQuantity;
+	}
+	public void setAvailableQuantity(Integer availableQuantity) {
+		this.availableQuantity = availableQuantity;
+	}
 }
+	
+	
+	

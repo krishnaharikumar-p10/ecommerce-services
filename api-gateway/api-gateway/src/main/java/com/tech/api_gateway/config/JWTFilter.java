@@ -37,7 +37,7 @@ public class JWTFilter implements WebFilter {
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         UsernamePasswordAuthenticationToken auth = null;
-
+        ServerWebExchange mutatedExchange = exchange;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             log.info("Pre-filter: JWT token found for request {}", exchange.getRequest().getPath());
@@ -50,11 +50,16 @@ public class JWTFilter implements WebFilter {
                         .collect(Collectors.toSet());
 
                 auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                mutatedExchange = exchange.mutate()
+                        .request(exchange.getRequest().mutate()
+                                .header("X-USERNAME", username)
+                                .build())
+                        .build();
             }
         }
 
        
-        Mono<Void> filterChain = chain.filter(exchange);
+        Mono<Void> filterChain = chain.filter(mutatedExchange);
         if (auth != null) {
             filterChain = filterChain.contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
         }

@@ -19,11 +19,10 @@ public class OrderProducer {
     public void sendOrderEvent(OrderEventMessage eventMessage) {
         try {
             String message = objectMapper.writeValueAsString(eventMessage);
-            kafkaTemplate.send("order-topic", message);
-            System.out.println("Sent order event: " + message);
+            kafkaTemplate.send("payment-request-topic", message);
+            System.out.println("Sent payment event: " + message);
         } catch (Exception e) {
-            // handle failure, log error
-            System.err.println("Failed to send order event: " + e.getMessage());
+            System.err.println("Failed to send payment event: " + e.getMessage());
         }
     }
 }

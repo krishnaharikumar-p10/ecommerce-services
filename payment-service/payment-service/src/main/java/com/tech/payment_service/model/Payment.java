@@ -12,6 +12,7 @@ public class Payment {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	private Integer customerId;
 	private String customerName;
 	private String orderNumber;        
     private BigDecimal totalAmount;           
@@ -22,10 +23,13 @@ public class Payment {
 	
 	public Payment() {}
 
-	public Payment(Long id, String customerName, String orderNumber, BigDecimal totalAmount, String status,
-			String paymentMethod, String transactionId) {
+	
+
+	public Payment(Long id, Integer customerId, String customerName, String orderNumber, BigDecimal totalAmount,
+			String status, String paymentMethod, String transactionId) {
 		super();
 		this.id = id;
+		this.customerId = customerId;
 		this.customerName = customerName;
 		this.orderNumber = orderNumber;
 		this.totalAmount = totalAmount;
@@ -36,8 +40,6 @@ public class Payment {
 
 
 
-
-
 	public Long getId() {
 		return id;
 	}
@@ -45,6 +47,16 @@ public class Payment {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+
+	public Integer getCustomerId() {
+		return customerId;
+	}
+
+
+	public void setCustomerId(Integer customerId) {
+		this.customerId = customerId;
 	}
 
 
@@ -106,7 +118,4 @@ public class Payment {
 	public void setTransactionId(String transactionId) {
 		this.transactionId = transactionId;
 	}
-	
-
-	
 }

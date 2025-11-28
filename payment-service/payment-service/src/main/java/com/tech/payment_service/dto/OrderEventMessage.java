@@ -3,7 +3,7 @@ import java.math.BigDecimal;
 
 public class OrderEventMessage {
 	
-	
+	private Integer customerId;
 	private String orderNumber;
     private String eventId;
     private String eventType; 
@@ -12,11 +12,13 @@ public class OrderEventMessage {
     private String correlationId;
 
     public OrderEventMessage() {}
+
     
     
-	public OrderEventMessage(String orderNumber, String eventId, String eventType, BigDecimal totalAmount,
-			String customerName, String correlationId) {
+	public OrderEventMessage(Integer customerId, String orderNumber, String eventId, String eventType,
+			BigDecimal totalAmount, String customerName, String correlationId) {
 		super();
+		this.customerId = customerId;
 		this.orderNumber = orderNumber;
 		this.eventId = eventId;
 		this.eventType = eventType;
@@ -24,41 +26,63 @@ public class OrderEventMessage {
 		this.customerName = customerName;
 		this.correlationId = correlationId;
 	}
-	public String getCorrelationId() {
-		return correlationId;
+
+
+
+	public Integer getCustomerId() {
+		return customerId;
 	}
-	public void setCorrelationId(String correlationId) {
-		this.correlationId = correlationId;
+
+	public void setCustomerId(Integer customerId) {
+		this.customerId = customerId;
 	}
+
 	public String getOrderNumber() {
 		return orderNumber;
 	}
+
 	public void setOrderNumber(String orderNumber) {
 		this.orderNumber = orderNumber;
 	}
+
 	public String getEventId() {
 		return eventId;
 	}
+
 	public void setEventId(String eventId) {
 		this.eventId = eventId;
 	}
+
 	public String getEventType() {
 		return eventType;
 	}
+
 	public void setEventType(String eventType) {
 		this.eventType = eventType;
 	}
+
 	public BigDecimal getTotalAmount() {
 		return totalAmount;
 	}
+
 	public void setTotalAmount(BigDecimal totalAmount) {
 		this.totalAmount = totalAmount;
 	}
+
 	public String getCustomerName() {
 		return customerName;
 	}
+
 	public void setCustomerName(String customerName) {
 		this.customerName = customerName;
 	}
-}
-   
+
+	public String getCorrelationId() {
+		return correlationId;
+	}
+
+	public void setCorrelationId(String correlationId) {
+		this.correlationId = correlationId;
+	}
+    
+}  

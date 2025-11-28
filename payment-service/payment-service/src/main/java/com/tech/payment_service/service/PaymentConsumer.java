@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +23,7 @@ public class PaymentConsumer {
     private static final Logger logger = LoggerFactory.getLogger(PaymentConsumer.class);
 
     @KafkaListener(topics = "payment-request-topic", groupId = "payment-group")
-    public void consumeOrderCreated(String message) { // accept String
+    public void consumeOrderCreated(String message) { 
         try {
             
             OrderEventMessage event = objectMapper.readValue(message, OrderEventMessage.class);

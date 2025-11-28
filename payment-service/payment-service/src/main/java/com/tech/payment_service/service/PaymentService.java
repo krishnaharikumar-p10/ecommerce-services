@@ -13,16 +13,19 @@ import org.springframework.stereotype.Service;
 import com.tech.payment_service.dto.OrderEventMessage;
 import com.tech.payment_service.dto.PaymentEventMessage;
 import com.tech.payment_service.dto.PaymentResponse;
+import com.tech.payment_service.exception.PaymentNotFoundException;
 import com.tech.payment_service.model.Payment;
 import com.tech.payment_service.model.PaymentLogTable;
 import com.tech.payment_service.repository.PaymentLogRepository;
 import com.tech.payment_service.repository.PaymentRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import tools.jackson.databind.ObjectMapper;
 
 
 @Service
 public class PaymentService {
+	
 	private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
@@ -42,9 +45,13 @@ public class PaymentService {
     }
     
     
-	public PaymentResponse processPayment(String orderNumber,String cardNumber) {
+	public PaymentResponse processPayment(String orderNumber,String cardNumber,Integer customerId) {
 		
+		logger.info("PAYMENT METHOD");
 		 Payment payment = paymentRepository.findByOrderNumber(orderNumber);
+		    if (payment == null) {
+		        throw new PaymentNotFoundException("Payment not found for order: " + orderNumber);
+		    }
 		 if (payment.getStatus().equalsIgnoreCase("PAYMENT_SUCCESS")) {
 			    return new PaymentResponse(
 			        payment.getOrderNumber(),
@@ -52,10 +59,12 @@ public class PaymentService {
 			        "Payment already processed"
 			    );
 			}
-		    
-		 boolean success = cardNumber != null && cardNumber.length() == 16;
 		 
-		 String TransactionId=UUID.randomUUID().toString();
+	     String correlationId = MDC.get("correlationId");
+
+	     boolean success = validateTestCard(cardNumber);
+		 
+		 String TransactionId=success ? UUID.randomUUID().toString() : null;
 		 payment.setStatus(success ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED");
 		 payment.setTransactionId(TransactionId);
 	     paymentRepository.save(payment);
@@ -66,6 +75,7 @@ public class PaymentService {
 	     String event_Id= UUID.randomUUID().toString();
 	     PaymentLogTable log = new PaymentLogTable();
 	     log.setEventId(event_Id); 
+	     log.setCustomerId(customerId);
 	     log.setOrderNumber(payment.getOrderNumber());
 	     log.setEventType(payment.getStatus());
 	     log.setDetails(message);
@@ -75,8 +85,10 @@ public class PaymentService {
 	     PaymentEventMessage event = new PaymentEventMessage();
 	     event.setStatus(payment.getStatus());
 	     event.setEventId(event_Id);
+	     event.setCustomerId(customerId);
 	     event.setOrderNumber(payment.getOrderNumber());
 	     event.setTransactionId(TransactionId);
+	     event.setCorrelationId(correlationId);
 	     
 	     String eventJson = objectMapper.writeValueAsString(event);
 	     
@@ -87,9 +99,33 @@ public class PaymentService {
 	     return new PaymentResponse(payment.getOrderNumber(), payment.getTransactionId(), response);
 		 
 
-
-	     
 	}
+	
+	private boolean validateTestCard(String card) {
+	    if (card == null || card.length() != 16) {
+	        return false;
+	    }
+
+	    // Visa – starts with 4
+	    if (card.startsWith("4")) {
+	        return true;
+	    }
+
+	    // MasterCard – starts with 51 to 55
+	    if (card.startsWith("51") || card.startsWith("52") || 
+	        card.startsWith("53") || card.startsWith("54") || 
+	        card.startsWith("55")) {
+	        return true;
+	    }
+
+	    // RuPay – starts with 60, 65, 81
+	    if (card.startsWith("60") || card.startsWith("65") || card.startsWith("81")) {
+	        return true;
+	    }
+
+	    return false;
+	}
+
 	
 	public void createPendingPayment(OrderEventMessage event) {
 		
@@ -97,10 +133,11 @@ public class PaymentService {
 		if (alreadyProcessed) {
 	        return; 
 	    }
-		logger.info("hello");
-		Payment payment = paymentRepository.findByOrderNumber(event.getOrderNumber());
-		payment = new Payment();
+		logger.info("Entering payment pending status");
+		
+		Payment payment = new Payment();
         payment.setCustomerName(event.getCustomerName());
+        payment.setCustomerId(event.getCustomerId());
         payment.setOrderNumber(event.getOrderNumber());
         payment.setTotalAmount(event.getTotalAmount());
         payment.setStatus("PAYMENT_PENDING");
@@ -110,6 +147,7 @@ public class PaymentService {
         
         PaymentLogTable log = new PaymentLogTable();
         log.setEventId(event.getEventId());     
+        log.setCustomerId(event.getCustomerId());
         log.setOrderNumber(event.getOrderNumber());
         log.setEventType("PAYMENT_PENDING");
         log.setDetails("Pending payment created");

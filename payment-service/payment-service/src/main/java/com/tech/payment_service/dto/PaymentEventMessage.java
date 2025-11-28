@@ -6,36 +6,50 @@ public class PaymentEventMessage {
 	private String orderNumber;
 	private String status;
 	private String transactionId;
+	private Integer customerId;
+	private String correlationId;
 	
-	
-
 	public PaymentEventMessage() {}
+
 	
-	public PaymentEventMessage(String eventId, String orderNumber, String status,String transactionId) {
+	
+	public PaymentEventMessage(String eventId, String orderNumber, String status, String transactionId,
+			Integer customerId, String correlationId) {
 		super();
 		this.eventId = eventId;
 		this.orderNumber = orderNumber;
 		this.status = status;
-		this.transactionId=transactionId;
+		this.transactionId = transactionId;
+		this.customerId = customerId;
+		this.correlationId = correlationId;
 	}
+
+
+
 	public String getEventId() {
 		return eventId;
 	}
+
 	public void setEventId(String eventId) {
 		this.eventId = eventId;
 	}
+
 	public String getOrderNumber() {
 		return orderNumber;
 	}
+
 	public void setOrderNumber(String orderNumber) {
 		this.orderNumber = orderNumber;
 	}
+
 	public String getStatus() {
 		return status;
 	}
+
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
 	public String getTransactionId() {
 		return transactionId;
 	}
@@ -44,4 +58,19 @@ public class PaymentEventMessage {
 		this.transactionId = transactionId;
 	}
 
+	public Integer getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(Integer customerId) {
+		this.customerId = customerId;
+	}
+
+	public String getCorrelationId() {
+		return correlationId;
+	}
+
+	public void setCorrelationId(String correlationId) {
+		this.correlationId = correlationId;
+	}
 }

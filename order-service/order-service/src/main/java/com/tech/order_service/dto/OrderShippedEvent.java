@@ -8,6 +8,7 @@ public class OrderShippedEvent {
 	private  String orderNumber;
 	private String trackingNumber;
 	private String eventId;
+	private String correlationid;
 	private List<ShippedItemDTO> items;
 	
 	
@@ -15,11 +16,13 @@ public class OrderShippedEvent {
 
 	
 
-	public OrderShippedEvent(String orderNumber, String trackingNumber, String eventId, List<ShippedItemDTO> items) {
+	public OrderShippedEvent(String orderNumber, String trackingNumber, String eventId, String correlationid,
+			List<ShippedItemDTO> items) {
 		super();
 		this.orderNumber = orderNumber;
 		this.trackingNumber = trackingNumber;
 		this.eventId = eventId;
+		this.correlationid = correlationid;
 		this.items = items;
 	}
 
@@ -55,6 +58,16 @@ public class OrderShippedEvent {
 	}
 
 
+	public String getCorrelationid() {
+		return correlationid;
+	}
+
+
+	public void setCorrelationid(String correlationid) {
+		this.correlationid = correlationid;
+	}
+
+
 	public List<ShippedItemDTO> getItems() {
 		return items;
 	}
@@ -63,6 +76,4 @@ public class OrderShippedEvent {
 	public void setItems(List<ShippedItemDTO> items) {
 		this.items = items;
 	}
-	
-	
 }

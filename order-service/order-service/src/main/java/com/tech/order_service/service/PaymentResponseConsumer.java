@@ -45,9 +45,10 @@ public class PaymentResponseConsumer {
         try {
 
             PaymentEventMessage event = objectMapper.readValue(message, PaymentEventMessage.class);
+            
             logger.info("Received payment event: " + event);
 
-            MDC.put("correlationId", event.getEventId());
+            MDC.put("correlationId", event.getCorrelationId());
 
             boolean alreadyProcessed = eventRepository.existsByEventId(event.getEventId());
             if (alreadyProcessed) {
@@ -79,6 +80,7 @@ public class PaymentResponseConsumer {
                 log.setEventId(event.getEventId());
                 log.setOrderNumber(event.getOrderNumber());
                 log.setEventType(finalStatus);
+                log.setCustomerId(order.getCustomerId());
                 log.setDetails("Order status updated to: " + finalStatus);
                 log.setProcessedAt(LocalDateTime.now());
                 eventRepository.save(log);
@@ -96,6 +98,7 @@ public class PaymentResponseConsumer {
                     newEvent.setAddress(order.getAddress());
                     newEvent.setEventId(newEventId);
                     newEvent.setStatus(finalStatus);
+                    newEvent.setCorrelationId(event.getCorrelationId());
 
                     List<OrderItemEventDTO> itemsDto = order.getOrderItems().stream()
                             .map(item -> new OrderItemEventDTO(

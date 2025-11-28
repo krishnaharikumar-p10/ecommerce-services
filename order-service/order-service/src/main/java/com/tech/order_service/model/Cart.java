@@ -1,12 +1,13 @@
 package com.tech.order_service.model;
 
-import java.time.LocalDateTime;
+
+import java.math.BigDecimal;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,17 +15,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
-public class OrderLogTable {
-
+public class Cart {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Integer customerId; 
+    private String customerName;
+	private String skuCode;
+	private BigDecimal price;
+	private Integer quantity;
 
-    private String eventId;  
-    private Integer customerId;
-    private String orderNumber;
-    private String eventType;     
-    private String details;  
-    private LocalDateTime processedAt;
 }

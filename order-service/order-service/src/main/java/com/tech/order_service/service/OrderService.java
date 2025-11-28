@@ -44,18 +44,17 @@ public class OrderService {
     private final OrderEventRepository eventRepository;
     private final OrderProducer producer;
     private final ExternalServiceValidation  externalServiceValidation;
-    
     @Transactional
-    public OrderPlacedResponse placeOrder(OrderDTO orderDto, HttpServletRequest request) {
+    public OrderPlacedResponse placeOrder(OrderDTO orderDto, Integer customerId, String customerName) {
 
         String correlationId = MDC.get("correlationId");
         
         String orderNumber = UUID.randomUUID().toString();
-        String customerName = request.getHeader("X-USERNAME");
 
         Orders order = new Orders();
         order.setOrderNumber(orderNumber);
         order.setCustomerName(customerName);
+        order.setCustomerId(customerId);
         order.setAddress(orderDto.getAddress());
 
         List<OrderItems> items = orderDto.getOrderItems().stream()
@@ -78,6 +77,7 @@ public class OrderService {
     	OrderLogTable event = OrderLogTable.builder()
                 .eventId(event_Id)
                 .orderNumber(orderNumber)
+                .customerId(customerId)
                 .eventType("ORDER_CREATED")
                 .details("Order created with " + orderDto.getOrderItems().size() + " item(s)")
                 .processedAt(LocalDateTime.now())
@@ -91,7 +91,7 @@ public class OrderService {
         }
 
      
-        OrderEventMessage eventMessage = new OrderEventMessage(
+        OrderEventMessage eventMessage = new OrderEventMessage(customerId,
                 orderNumber,event_Id, "ORDER_CREATED", totalAmount, customerName, correlationId);
         producer.sendOrderEvent(eventMessage);
 
@@ -115,9 +115,9 @@ public class OrderService {
     }
 
 
-	public List<OrderResponse> getAllOrders(HttpServletRequest request) {
-		String customerName = request.getHeader("X-USERNAME");
-		List<Orders> orders = orderRepository.findByCustomerName(customerName);
+	public List<OrderResponse> getAllOrders( Integer customerId) {
+		log.info("Getting all the order details");
+		List<Orders> orders = orderRepository.findByCustomerId(customerId);
 	    return orders.stream()
 	            .map(order -> {
 	                OrderResponse dto = new OrderResponse();
@@ -130,4 +130,6 @@ public class OrderService {
 	            .toList();
 		
 	}
+
+
 }

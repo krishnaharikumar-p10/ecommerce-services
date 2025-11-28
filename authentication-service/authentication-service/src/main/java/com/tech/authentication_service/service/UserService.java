@@ -8,10 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
-
-import com.tech.authentication_service.model.Token;
 import com.tech.authentication_service.model.Users;
-import com.tech.authentication_service.repository.TokenRepository;
 import com.tech.authentication_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +20,6 @@ public class UserService {
 	private final JWTService JwtService;
 
 	private final AuthenticationManager authmanager;
-
-	private final TokenRepository tokenRepository;
 	
 	private final UserRepository userRepository;
 	
@@ -44,28 +39,18 @@ public class UserService {
 	        
 	        Users dbUser= userRepository.findByUsername(user.getUsername());
 	        
-	        Token existingToken= tokenRepository.findByUserId(dbUser.getId());
-	        String jwt;
 	        
-	        if (existingToken!=null) {
-	        	jwt= existingToken.getJwtToken();
-	        }
-	        else {
-	        	jwt= JwtService.generateToken(user.getUsername(),roles);
-	        	
-	        	Token token = new Token();
-	        	token.setUserId(dbUser.getId());
-	        	token.setJwtToken(jwt);
-	        	tokenRepository.save(token);
-
-	        }
+	        String jwt= JwtService.generateToken(
+	        		dbUser.getId(),
+	        		dbUser.getUsername(),
+	        		roles);
 	        
 	        return jwt;
-	        
-		}
-		else {
-			return "Failed ";
-		}
+
+	        }
+
+		return "Failed ";
+		
 	}
 
 }

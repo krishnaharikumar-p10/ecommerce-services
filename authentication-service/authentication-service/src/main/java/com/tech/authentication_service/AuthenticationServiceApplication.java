@@ -26,19 +26,19 @@ public class AuthenticationServiceApplication {
         return args -> {
             // Create CUSTOMER role
             Role customerRole = new Role();
-            customerRole.setName("SHIPPING_STAFF");
+            customerRole.setName("CUSTOMER");
             roleRepository.save(customerRole);
 
             // Create a user with CUSTOMER role
             Users user = new Users();
-            user.setUsername("Alex");
-            user.setPassword(passwordEncoder.encode("a@123")); // store plain for now; in real life, hash it
+            user.setUsername("Joshi");
+            user.setPassword(passwordEncoder.encode("j@123")); // store plain for now; in real life, hash it
             user.setRoles(Set.of(customerRole));
             usersRepository.save(user);
 
             System.out.println("Customer role and user added to database!");
         };
     }
-    
-*/
+    */
+
 }

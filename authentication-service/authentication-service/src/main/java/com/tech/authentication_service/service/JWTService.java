@@ -25,17 +25,18 @@ public class JWTService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
     
-	public String generateToken(String username,Set<String> roles) {
+	public String generateToken(int id,String username,Set<String> roles) {
 		
 	
 		Map<String, Object> claims= new HashMap<>();
 		 claims.put("roles", roles);
+		 claims.put("userId", id);
 		
 		return Jwts.builder()
 				.setClaims(claims)
 				.setSubject(username)
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365))
+				.setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 30 ))
 				.signWith(getKey())
 				.compact();
 	}

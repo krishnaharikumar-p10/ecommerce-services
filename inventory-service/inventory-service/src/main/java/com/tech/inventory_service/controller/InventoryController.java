@@ -31,11 +31,12 @@ public class InventoryController {
 		logger.info("Returning stock details of  {} " + skuCode);
 		return inventoryservice.checkStock(skuCode);
 	}
+	
 	/*
 	@PutMapping("increase/{skuCode}")
-	public InventoryResponse increaseStocks(@PathVariable String skuCode,@RequestBody InventoryRequest request) throws SKUNotFoundException {
-		return inventoryservice.increaseStocks(skuCode,request);
+	public InventoryResponse increaseStocks(@PathVariable String skuCode) throws SKUNotFoundException {
+		return inventoryservice.increaseStocks(skuCode);
 	}
-	*/
 	
+	*/
 }

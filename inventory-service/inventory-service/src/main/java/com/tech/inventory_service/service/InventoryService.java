@@ -1,21 +1,14 @@
 package com.tech.inventory_service.service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.tech.inventory_service.dto.InventoryRequest;
 import com.tech.inventory_service.dto.InventoryResponse;
-import com.tech.inventory_service.dto.ShippedItemDTO;
 import com.tech.inventory_service.exceptions.SKUNotFoundException;
 import com.tech.inventory_service.model.Inventory;
 import com.tech.inventory_service.repository.InventoryRepository;
 
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import lombok.RequiredArgsConstructor;
 

@@ -15,5 +15,6 @@ public class OrderPaymentSuccessMessage {
     private String status; 
     private String customerName;
     private String address;
+    private String correlationid;
     private List<OrderItemEventDTO> orderItems;
 }

@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.kafka.common.Uuid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import com.tech.shipping_service.dto.OrderPaymentSuccessMessage;
 import com.tech.shipping_service.dto.OrderShippedEvent;
 import com.tech.shipping_service.dto.ShippedItemDTO;
 import com.tech.shipping_service.dto.ShippingResponse;
+import com.tech.shipping_service.exception.ShippingNotFoundException;
 import com.tech.shipping_service.model.Shipping;
 import com.tech.shipping_service.model.ShippingItems;
 import com.tech.shipping_service.model.ShippingLog;
@@ -30,11 +34,15 @@ public class ShippingService {
     
 	@Autowired
 	private ShippingRepository shippingRepository;
+	
     @Autowired
     private ShippingLogRepository shippingLogRepository;
+    
+    private final Logger logger= LoggerFactory.getLogger(ShippingService.class);
 
 	public void prepareShipping(OrderPaymentSuccessMessage event) {
 		
+		logger.info("IN PREPARE SHIPPING METHOD");
 	    Shipping shipping = new Shipping();
 	    shipping.setOrderNumber(event.getOrderNumber());
 	    shipping.setCustomerName(event.getCustomerName());
@@ -59,8 +67,7 @@ public class ShippingService {
 		Shipping shippingOrder= shippingRepository.findByOrderNumber(orderNumber);
 		
         if (shippingOrder == null) {
-            throw new RuntimeException("Shipping record not found for order: " + orderNumber);
-        }
+        	 throw new ShippingNotFoundException("Shipping record not found for order: " + orderNumber);        }
         
         if ("ORDER_SHIPPED".equalsIgnoreCase(shippingOrder.getStatus())) {
             
@@ -70,6 +77,9 @@ public class ShippingService {
                 "Order already shipped"
             );
         }
+        
+        String correlationId = MDC.get("correlationId");
+        logger.info("ORDER SHIPPED METHOD");
         shippingOrder.setStatus("ORDER_SHIPPED");
         String TrackingNumber= Uuid.randomUuid().toString();
         shippingOrder.setTrackingNumber(TrackingNumber);
@@ -91,6 +101,7 @@ public class ShippingService {
             shippedEvent.setOrderNumber(orderNumber);
             shippedEvent.setTrackingNumber(TrackingNumber);
             shippedEvent.setEventId(event_Id);
+            shippedEvent.setCorrelationid(correlationId);
             
             List<ShippedItemDTO> shippedItems = shippingOrder.getShippingItems().stream().map(si -> {
                 ShippedItemDTO dto = new ShippedItemDTO();
@@ -110,9 +121,17 @@ public class ShippingService {
         return new ShippingResponse(
                 shippingOrder.getOrderNumber(),
                 shippingOrder.getTrackingNumber(),
-                "Order already shipped");
+                "Order Shipped Successfully ");
           
 		
+	}
+
+	public String getStatus(String orderNumber) {
+		Shipping shippingOrder = shippingRepository.findByOrderNumber(orderNumber);
+		if (shippingOrder == null) {
+		    throw new ShippingNotFoundException("Shipping record not found for order: " + orderNumber);
+		}
+		return shippingOrder.getStatus();
 	}
 
 }

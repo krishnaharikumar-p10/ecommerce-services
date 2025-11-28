@@ -2,9 +2,9 @@ package com.tech.shipping_service.service;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,9 @@ public class ShippingConsumer {
     @KafkaListener(topics = "order-comfirmed", groupId = "shipping-group")
     public void consumeOrderConfirmed(String message) {
         try {
+       
             OrderPaymentSuccessMessage event = objectMapper.readValue(message, OrderPaymentSuccessMessage.class);
+            MDC.put("correlationId",event.getCorrelationId());
 
             boolean alreadyProcessed = shippingLogRepository.existsByEventId(event.getEventId());
             if (alreadyProcessed) {
@@ -45,6 +47,8 @@ public class ShippingConsumer {
             
         } catch (Exception e) {
           
+        }finally{
+        	MDC.clear();
         }
     }
 }

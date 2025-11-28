@@ -44,15 +44,18 @@ public class JWTFilter implements WebFilter {
 
             if (jwtService.validateToken(token)) {
                 String username = jwtService.extractUsername(token);
+                Integer userId=jwtService.extractUserId(token);
 
                 Set<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toSet());
 
+               
                 auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
                 mutatedExchange = exchange.mutate()
                         .request(exchange.getRequest().mutate()
                                 .header("X-USERNAME", username)
+                                .header("X-USER-ID", userId != null ? String.valueOf(userId) : "")
                                 .build())
                         .build();
             }

@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JWTService {
 
+	private final Logger log= LoggerFactory.getLogger(JWTService.class);
+	
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -26,14 +30,29 @@ public class JWTService {
     }
 
     
-	public boolean validateToken(String token) {
-	    try {
-	        Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(token);
-	        return true;
-	    } catch (Exception e) {
-	        return false;
-	    }
-	}
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(token);
+            return true;
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.warn("JWT token expired");
+            return false;
+        } catch (Exception e) {
+            log.warn("JWT token invalid");
+            return false;
+        }
+    }
+
+	
+    public Integer extractUserId(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return (Integer) claims.get("userId"); 
+    }
+
 
 
 	public String extractUsername(String token) {

@@ -27,17 +27,20 @@ public class SecurityConfig {
                 .pathMatchers(HttpMethod.GET, "/product-service/api/product/**").hasAnyRole("CUSTOMER", "CATALOG_MANAGER")
              
                 //inventory-service paths
-                .pathMatchers(HttpMethod.GET, "/inventory-service/api/inventory/check/*").hasAnyRole("INVENTORY_MANAGER")
+                .pathMatchers(HttpMethod.GET, "/inventory-service/api/inventory/check/**").hasAnyRole("INVENTORY_MANAGER")
                 
                 //order-service-paths
-                .pathMatchers(HttpMethod.POST, "/order-service/api/order").hasRole("CUSTOMER")
+                .pathMatchers(HttpMethod.POST, "/order-service/api/order/**").hasRole("CUSTOMER")
                 .pathMatchers(HttpMethod.GET, "/order-service/api/order/myorders").hasRole("CUSTOMER")
+                .pathMatchers(HttpMethod.POST, "/order-service/cart/**").hasRole("CUSTOMER")
+                .pathMatchers(HttpMethod.GET, "/order-service/cart/**").hasRole("CUSTOMER")
                 
                 //payment-service-paths
                 .pathMatchers(HttpMethod.POST, "/payment-service/api/pay/**").hasRole("CUSTOMER")
 
                 //shipping-servic-paths
                 .pathMatchers(HttpMethod.POST, "/shipping-service/shipping/ship/**").hasRole("SHIPPING_STAFF")
+                .pathMatchers(HttpMethod.GET, "/shipping-service/shipping/**").hasRole("SHIPPING_STAFF")
            
                 
                 .anyExchange().authenticated()

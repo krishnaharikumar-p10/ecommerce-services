@@ -5,7 +5,9 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -23,53 +25,64 @@ import reactor.core.publisher.Mono;
 @Component
 public class JWTFilter implements WebFilter {
 
+    private final RedisTemplate<String, Object> redisTemplate;
     private final Logger log = LoggerFactory.getLogger(JWTFilter.class);
     private final JWTService jwtService;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
-       
         if (exchange.getAttributes().containsKey("jwtFilterExecuted")) {
             return chain.filter(exchange);
         }
         exchange.getAttributes().put("jwtFilterExecuted", true);
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        UsernamePasswordAuthenticationToken auth = null;
-        ServerWebExchange mutatedExchange = exchange;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            log.info("Pre-filter: JWT token found for request {}", exchange.getRequest().getPath());
-
-            if (jwtService.validateToken(token)) {
-                String username = jwtService.extractUsername(token);
-                Integer userId=jwtService.extractUserId(token);
-
-                Set<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toSet());
-
-               
-                auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
-                mutatedExchange = exchange.mutate()
-                        .request(exchange.getRequest().mutate()
-                                .header("X-USERNAME", username)
-                                .header("X-USER-ID", userId != null ? String.valueOf(userId) : "")
-                                .build())
-                        .build();
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
         }
 
-       
-        Mono<Void> filterChain = chain.filter(mutatedExchange);
-        if (auth != null) {
-            filterChain = filterChain.contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
+        String token = authHeader.substring(7);
+
+ 
+        if (!jwtService.validateToken(token)) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
         }
 
         
-        return filterChain.then(Mono.fromRunnable(() -> {
-            log.info("Post-filter: Response status = {}", exchange.getResponse().getStatusCode());
-        }));
+        Object userId = redisTemplate.opsForValue().get(token);
+        if (userId == null) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
+        
+        log.info("REDIS : {}" ,userId);
+
+       
+        String username = jwtService.extractUsername(token);
+        Set<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+
+        
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+        ServerWebExchange mutatedExchange = exchange.mutate()
+                .request(exchange.getRequest().mutate()
+                        .header("X-USERNAME", username)
+                        .header("X-USER-ID", String.valueOf(userId))
+                        .build())
+                .build();
+
+        log.info("JWT validated and session active for user {}", username);
+
+        return chain.filter(mutatedExchange)
+                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth))
+                    .then(Mono.fromRunnable(() ->
+                        log.info("Post-filter: Response status = {}", exchange.getResponse().getStatusCode())));
     }
 }
+

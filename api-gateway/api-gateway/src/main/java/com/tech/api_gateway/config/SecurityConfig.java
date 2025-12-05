@@ -25,9 +25,11 @@ public class SecurityConfig {
             		
             	//product-service paths
                 .pathMatchers(HttpMethod.GET, "/product-service/api/product/**").hasAnyRole("CUSTOMER", "CATALOG_MANAGER")
+                .pathMatchers(HttpMethod.PUT, "/product-service/api/product/**").hasAnyRole("CATALOG_MANAGER")
              
                 //inventory-service paths
                 .pathMatchers(HttpMethod.GET, "/inventory-service/api/inventory/check/**").hasAnyRole("INVENTORY_MANAGER")
+                .pathMatchers(HttpMethod.PUT, "/inventory-service/api/inventory/**").hasAnyRole("INVENTORY_MANAGER")
                 
                 //order-service-paths
                 .pathMatchers(HttpMethod.POST, "/order-service/api/order/**").hasRole("CUSTOMER")

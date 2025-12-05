@@ -18,14 +18,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class MyUserService  implements UserDetailsService{
-
 	
 	private final UserRepository userrepository;
 	
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 	 
-		Users user= userrepository.findByUsername(username);
+		Users user= userrepository.findByEmail(email);
 		
 		if (user==null) {
 			throw new UsernameNotFoundException("User not found");

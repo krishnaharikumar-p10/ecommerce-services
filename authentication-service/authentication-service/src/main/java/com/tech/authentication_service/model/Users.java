@@ -17,18 +17,28 @@ public class Users {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	private String username;
+	private String email;
 	private String password;
 	@ManyToMany(fetch = FetchType.EAGER)
 	private Set<Role> roles;
 	
 	public Users () {}
 	
-	public Users(int id, String username, String password, Set<Role> roles) {
+	public Users(int id, String username,String email, String password, Set<Role> roles) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.password = password;
 		this.roles = roles;
+		this.email=email;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public int getId() {

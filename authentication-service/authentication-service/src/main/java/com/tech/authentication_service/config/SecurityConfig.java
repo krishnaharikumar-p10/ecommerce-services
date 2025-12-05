@@ -27,9 +27,11 @@ public class SecurityConfig {
 		
 		http.csrf(customise -> customise.disable())
 		.authorizeHttpRequests(request -> request 
-				.requestMatchers("login") 
-				.permitAll()
+				.requestMatchers("login") .permitAll()
+				.requestMatchers("logout") .permitAll()
+				.requestMatchers("signup") .permitAll()
 				.anyRequest().authenticated())
+		.logout(logout -> logout.disable()) 
 		.httpBasic(Customizer.withDefaults());
 		return http.build();
 	}

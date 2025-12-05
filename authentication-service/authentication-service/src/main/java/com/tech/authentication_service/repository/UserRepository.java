@@ -9,5 +9,7 @@ import com.tech.authentication_service.model.Users;
 public interface UserRepository  extends JpaRepository<Users,Integer > {
 
 	Users findByUsername(String username);
+	Users findByEmail(String email);
+	boolean existsByEmail(String email);
 
 }

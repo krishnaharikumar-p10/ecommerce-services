@@ -25,20 +25,54 @@ public class AuthenticationServiceApplication {
     public CommandLineRunner loadData(RoleRepository roleRepository, UserRepository usersRepository,PasswordEncoder passwordEncoder) {
         return args -> {
             // Create CUSTOMER role
-            Role customerRole = new Role();
-            customerRole.setName("CUSTOMER");
-            roleRepository.save(customerRole);
+        	// Create roles
+        	Role customerRole = new Role();
+        	customerRole.setName("CUSTOMER");
+        	roleRepository.save(customerRole);
 
-            // Create a user with CUSTOMER role
-            Users user = new Users();
-            user.setUsername("Joshi");
-            user.setPassword(passwordEncoder.encode("j@123")); // store plain for now; in real life, hash it
-            user.setRoles(Set.of(customerRole));
-            usersRepository.save(user);
+        	Role catalogManagerRole = new Role();
+        	catalogManagerRole.setName("CATALOG_MANAGER");
+        	roleRepository.save(catalogManagerRole);
+
+        	Role shippingStaffRole = new Role();
+        	shippingStaffRole.setName("SHIPPING_STAFF");
+        	roleRepository.save(shippingStaffRole);
+
+        	Role inventoryManagerRole = new Role();
+        	inventoryManagerRole.setName("INVENTORY_MANAGER");
+        	roleRepository.save(inventoryManagerRole);
+
+        	Users taylor = new Users();
+        	taylor.setUsername("Taylor");
+        	taylor.setEmail("taylor@gmail.com");
+        	taylor.setPassword(passwordEncoder.encode("t@123"));
+        	taylor.setRoles(Set.of(customerRole));
+        	usersRepository.save(taylor);
+
+        	Users henry = new Users();
+        	henry.setUsername("Henry");
+        	henry.setEmail("henry@gmail.com");
+        	henry.setPassword(passwordEncoder.encode("h@123"));
+        	henry.setRoles(Set.of(catalogManagerRole));
+        	usersRepository.save(henry);
+
+        	Users alex = new Users();
+        	alex.setUsername("Alex");
+        	alex.setEmail("alex@gmail.com");
+        	alex.setPassword(passwordEncoder.encode("a@123"));
+        	alex.setRoles(Set.of(shippingStaffRole));
+        	usersRepository.save(alex);
+
+        	Users nick = new Users();
+        	nick.setUsername("Nick");
+        	nick.setEmail("nick@gmail.com");
+        	nick.setPassword(passwordEncoder.encode("n@123"));
+        	nick.setRoles(Set.of(inventoryManagerRole));
+        	usersRepository.save(nick);
 
             System.out.println("Customer role and user added to database!");
         };
     }
-    */
-
+    
+*/
 }

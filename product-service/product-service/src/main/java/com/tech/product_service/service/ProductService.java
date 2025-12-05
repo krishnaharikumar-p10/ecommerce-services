@@ -1,5 +1,6 @@
 package com.tech.product_service.service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.tech.product_service.repository.ProductRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,11 +30,6 @@ public class ProductService {
 	private final ProductRepository productrepository;
 	
 	private static final Logger logger= LoggerFactory.getLogger(ProductService.class);
-	
-	public Optional<ProductResponse> getProductbyId(String skuCode) {
-	    return productrepository.findByskuCode(skuCode)
-	            .map(this::mapEntitytodto);
-	}
 	
 
 	public Page<ProductResponse> getProduct(int page, int size, String sortBy , String sortDir) {
@@ -54,7 +51,16 @@ public class ProductService {
 	    return mapEntitytodto(product);
 	}
 
-	
+
+	 @CachePut(value = "products", key = "#skuCode")
+	    public ProductResponse updatePrice(String skuCode, BigDecimal newPrice) {
+	        Product product = productrepository.findByskuCode(skuCode)
+	            .orElseThrow(() -> new ProductNotFoundException("Product not found for SKU: " + skuCode));
+	        product.setPrice(newPrice);
+	        productrepository.save(product);
+	        log.info("Updated price for SKU {} to {}", skuCode, newPrice);
+	        return mapEntitytodto(product);
+	    }
 
 	private ProductResponse mapEntitytodto(Product product) {
 		
@@ -68,5 +74,6 @@ public class ProductService {
 		return productresponse;
 	
 	}
+
 	
 }

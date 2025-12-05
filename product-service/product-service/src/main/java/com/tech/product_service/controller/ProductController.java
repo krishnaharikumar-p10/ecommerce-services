@@ -1,5 +1,6 @@
 package com.tech.product_service.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,25 +32,14 @@ import lombok.RequiredArgsConstructor;
 public class ProductController {
 	
 	private final ProductService productservice;
-	
-    private final HttpServletRequest request;
-
     
 	private static final Logger logger= LoggerFactory.getLogger(ProductController.class);
 
 	
-	@GetMapping("/{skuCode}")
-	public Optional<ProductResponse> getProductId(@PathVariable String skuCode) {
-		logger.info("Returning product details of {}", skuCode);
-		return productservice.getProductbyId(skuCode);
-	}
-	
-
-	
-	@GetMapping()
+	@GetMapping
 	public Page<ProductResponse> getProductPages(
 			@RequestParam(defaultValue="0") int page,
-			@RequestParam(defaultValue="10") int size,
+			@RequestParam(defaultValue="5") int size,
 			@RequestParam(defaultValue= "name") String sortBy,
 			@RequestParam(defaultValue= "asc") String sortDir){	
 		
@@ -58,7 +49,14 @@ public class ProductController {
 	
 	@GetMapping("/get/{skuCode}")
 	public ProductResponse getProductDetail(@PathVariable String skuCode) {
+		logger.info("Fetching the product details");
 		return productservice.getProductDetail(skuCode);
 	}
+	
+    @PutMapping("/{skuCode}/price")
+    public ProductResponse updatePrice(@PathVariable String skuCode, @RequestParam BigDecimal price) {
+        return productservice.updatePrice(skuCode, price);
+    }
+
 
 }

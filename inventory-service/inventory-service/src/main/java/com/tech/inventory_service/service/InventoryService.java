@@ -9,6 +9,7 @@ import com.tech.inventory_service.exceptions.SKUNotFoundException;
 import com.tech.inventory_service.model.Inventory;
 import com.tech.inventory_service.repository.InventoryRepository;
 
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +21,7 @@ public class InventoryService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(InventoryService.class);
 
-	@Cacheable(value="inventory" , key="#skuCode")
+	@Cacheable(value="inventory", key="#skuCode", unless="#result == null")
 	public InventoryResponse checkStock(String skuCode) throws SKUNotFoundException {
 		
 		Inventory inventory= inventoryrepository.findByskuCode(skuCode).orElseThrow(() -> new SKUNotFoundException(skuCode));
@@ -34,20 +35,27 @@ public class InventoryService {
 		return dto;
 	}
 
-	public void reserveStock(String skuCode, Integer quantity) throws SKUNotFoundException {
+	@CachePut(value = "inventory", key = "#skuCode", unless="#result == null")
+	public InventoryResponse reserveStock(String skuCode, Integer quantity) throws SKUNotFoundException {
 		Inventory inventory = inventoryrepository.findByskuCode(skuCode)
                 .orElseThrow(() -> new SKUNotFoundException(skuCode));
 		 inventory.setAvailableQuantity(inventory.getAvailableQuantity()-quantity);
 		 inventory.setReservedQuantity(inventory.getReservedQuantity()+quantity);
 		 inventoryrepository.save(inventory);
-		 
+		 InventoryResponse response = new InventoryResponse();
+		  response.setId(inventory.getId());
+		    response.setSkuCode(inventory.getSkuCode());
+		    response.setAvailableQuantity(inventory.getAvailableQuantity());
+		    response.setReservedQuantity(inventory.getReservedQuantity());
+		    response.setTotalQuantity(inventory.getTotalQuantity());
+		    
 		  logger.info("Reserved {} units of SKU {}", quantity, skuCode);
 
-		
+		  return response;
 	}
 
-
-	public void reduceReservedStock(String skuCode, Integer quantity) {
+	@CachePut(value = "inventory", key = "#skuCode", unless="#result == null")
+	public InventoryResponse reduceReservedStock(String skuCode, Integer quantity) {
 		Inventory inventory = inventoryrepository.findByskuCode(skuCode)
                 .orElseThrow(() -> new SKUNotFoundException(skuCode));
 		 inventory.setTotalQuantity(inventory.getTotalQuantity()-quantity);
@@ -55,30 +63,41 @@ public class InventoryService {
 		 inventoryrepository.save(inventory);
 		 
 		 logger.info("Reduced {} units of SKU {}", quantity, skuCode);
+		 
+		 InventoryResponse response = new InventoryResponse();
+		    response.setId(inventory.getId());
+		    response.setSkuCode(inventory.getSkuCode());
+		    response.setAvailableQuantity(inventory.getAvailableQuantity());
+		    response.setReservedQuantity(inventory.getReservedQuantity());
+		    response.setTotalQuantity(inventory.getTotalQuantity());
+
+		    return response;
 	}
+
+	@CachePut(value = "inventory", key = "#skuCode", unless="#result == null")
+    public InventoryResponse increaseStock(String skuCode, int quantity) throws SKUNotFoundException {
+        Inventory inventory = inventoryrepository.findByskuCode(skuCode)
+                .orElseThrow(() -> new SKUNotFoundException(skuCode));
+
+        inventory.setAvailableQuantity(inventory.getAvailableQuantity() + quantity);
+        inventory.setTotalQuantity(inventory.getTotalQuantity() + quantity);
+
+        inventoryrepository.save(inventory);
+        logger.info("Increased {} units for SKU {}", quantity, skuCode);
+
+        InventoryResponse response = new InventoryResponse();
+        response.setId(inventory.getId());
+        response.setSkuCode(inventory.getSkuCode());
+        response.setAvailableQuantity(inventory.getAvailableQuantity());
+        response.setReservedQuantity(inventory.getReservedQuantity());
+        response.setTotalQuantity(inventory.getTotalQuantity());
+
+        return response;
+    }
 
 
 
 
 	
-	/*
-	@CachePut(value="inventory" , key="#skuCode")
-	public InventoryResponse increaseStocks(String skuCode, InventoryRequest request) throws SKUNotFoundException {
-		
-		Inventory inventory=inventoryrepository.findByskuCode(skuCode).orElseThrow(() -> new SKUNotFoundException(skuCode));
-		Integer newQuantity= request.getQuantity()+ inventory.getQuantity();
-		inventory.setQuantity(newQuantity);
-		inventoryrepository.save(inventory);
-		
-		InventoryResponse response= new InventoryResponse();
-		response.setId(inventory.getId());
-		response.setSkuCode(skuCode);
-		response.setQuantity(newQuantity);
-		logger.info("Increased stock for {} " + skuCode);
-		return response;
-		
-	}
- 
-    */
 	
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tech.inventory_service.dto.InventoryRequest;
@@ -32,11 +33,11 @@ public class InventoryController {
 		return inventoryservice.checkStock(skuCode);
 	}
 	
-	/*
-	@PutMapping("increase/{skuCode}")
-	public InventoryResponse increaseStocks(@PathVariable String skuCode) throws SKUNotFoundException {
-		return inventoryservice.increaseStocks(skuCode);
-	}
+    @PutMapping("/increase-stock/{skuCode}")
+    public InventoryResponse increaseStock(
+            @PathVariable String skuCode,
+            @RequestParam int quantity) throws SKUNotFoundException {
+        return inventoryservice.increaseStock(skuCode, quantity);
+    }
 	
-	*/
 }

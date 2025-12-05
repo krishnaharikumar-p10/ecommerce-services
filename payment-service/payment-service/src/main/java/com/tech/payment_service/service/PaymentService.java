@@ -48,10 +48,12 @@ public class PaymentService {
 	public PaymentResponse processPayment(String orderNumber,String cardNumber,Integer customerId) {
 		
 		logger.info("PAYMENT METHOD");
-		 Payment payment = paymentRepository.findByOrderNumber(orderNumber);
-		    if (payment == null) {
-		        throw new PaymentNotFoundException("Payment not found for order: " + orderNumber);
-		    }
+		Payment payment = paymentRepository.findByOrderNumberAndCustomerId(orderNumber, customerId);
+		if (payment == null) {
+		    throw new PaymentNotFoundException("Payment not found for this customer");
+		}
+
+		 
 		 if (payment.getStatus().equalsIgnoreCase("PAYMENT_SUCCESS")) {
 			    return new PaymentResponse(
 			        payment.getOrderNumber(),

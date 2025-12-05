@@ -12,7 +12,7 @@ import com.tech.order_service.dto.ProductResponse;
 @FeignClient(name = "PRODUCT-SERVICE")
 public interface ProductServiceClient {
 
-    @GetMapping("/api/product/{skuCode}")
-    Optional<ProductResponse> getProduct(@PathVariable String skuCode,
+    @GetMapping("/api/product/get/{skuCode}")
+    ProductResponse getProduct(@PathVariable String skuCode,
                                @RequestHeader("X-Correlation-Id") String correlationId);
 }

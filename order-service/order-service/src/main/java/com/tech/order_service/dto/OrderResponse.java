@@ -1,6 +1,8 @@
 package com.tech.order_service.dto;
 
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,4 +16,5 @@ public class OrderResponse {
     private String status;
     private String transactionId;   
     private String trackingNumber; 
+    private LocalDateTime orderedAt;
 }

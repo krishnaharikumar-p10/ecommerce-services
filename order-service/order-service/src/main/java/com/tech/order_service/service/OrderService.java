@@ -2,6 +2,7 @@ package com.tech.order_service.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,7 +49,6 @@ public class OrderService {
     public OrderPlacedResponse placeOrder(OrderDTO orderDto, Integer customerId, String customerName) {
 
         String correlationId = MDC.get("correlationId");
-        
         String orderNumber = UUID.randomUUID().toString();
 
         Orders order = new Orders();
@@ -56,80 +56,93 @@ public class OrderService {
         order.setCustomerName(customerName);
         order.setCustomerId(customerId);
         order.setAddress(orderDto.getAddress());
+        order.setOrderedAt(LocalDateTime.now());
 
-        List<OrderItems> items = orderDto.getOrderItems().stream()
-                .map(this::mapDTOtoEntity)
-                .collect(Collectors.toList());
-        order.setOrderItems(items);
+        List<OrderItems> items = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
 
-        for (OrderItemsDTO item : orderDto.getOrderItems()) {
-            ProductResponse product = externalServiceValidation.validateProduct(item.getSkuCode(), correlationId);
+        for (OrderItemsDTO itemDto : orderDto.getOrderItems()) {
+
+            ProductResponse product = externalServiceValidation.validateProduct(
+                    itemDto.getSkuCode(), correlationId);
+
             InventoryResponse inventory = externalServiceValidation.validateInventory(
-                    item.getSkuCode(), item.getQuantity(), correlationId);
+                    itemDto.getSkuCode(), itemDto.getQuantity(), correlationId);
+
+            OrderItems orderItem = new OrderItems();
+            orderItem.setSkuCode(itemDto.getSkuCode());
+            orderItem.setQuantity(itemDto.getQuantity());
+            orderItem.setPrice(product.getPrice());
+            items.add(orderItem);
+
+            totalAmount = totalAmount.add(
+                    product.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity()))
+            );
         }
 
-
+        order.setOrderItems(items);
         order.setStatus("CREATED");
         orderRepository.save(order);
 
-        String event_Id = UUID.randomUUID().toString();
-        
-    	OrderLogTable event = OrderLogTable.builder()
-                .eventId(event_Id)
+        String eventId = UUID.randomUUID().toString();
+        OrderLogTable event = OrderLogTable.builder()
+                .eventId(eventId)
                 .orderNumber(orderNumber)
                 .customerId(customerId)
                 .eventType("ORDER_CREATED")
                 .details("Order created with " + orderDto.getOrderItems().size() + " item(s)")
                 .processedAt(LocalDateTime.now())
                 .build();
-    	
         eventRepository.save(event);
-       
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        for (OrderItemsDTO orderItem : orderDto.getOrderItems()) {
-            totalAmount = totalAmount.add(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
-        }
 
-     
-        OrderEventMessage eventMessage = new OrderEventMessage(customerId,
-                orderNumber,event_Id, "ORDER_CREATED", totalAmount, customerName, correlationId);
+        OrderEventMessage eventMessage = new OrderEventMessage(
+                customerId, orderNumber, eventId, "ORDER_CREATED",
+                totalAmount, customerName, correlationId
+        );
         producer.sendOrderEvent(eventMessage);
 
-       
+        List<OrderItemsDTO> responseItems = items.stream().map(oi -> {
+            OrderItemsDTO dto = new OrderItemsDTO();
+            dto.setSkuCode(oi.getSkuCode());
+            dto.setQuantity(oi.getQuantity());
+            dto.setPrice(oi.getPrice());
+            return dto;
+        }).toList();
+
         OrderPlacedResponse response = new OrderPlacedResponse();
         response.setOrderNumber(orderNumber);
         response.setStatus(order.getStatus());
-        response.setOrderItems(orderDto.getOrderItems());
+        response.setOrderItems(responseItems);
+        response.setTotalPrice(totalAmount);
         response.setMessage("Order created successfully. Proceed to payment.");
 
         return response;
     }
 
 
-    private OrderItems mapDTOtoEntity(OrderItemsDTO dto) {
-        OrderItems orderItem = new OrderItems();
-        orderItem.setSkuCode(dto.getSkuCode());
-        orderItem.setPrice(dto.getPrice());
-        orderItem.setQuantity(dto.getQuantity());
-        return orderItem;
+    public List<OrderResponse> getAllOrders(Integer customerId) {
+        log.info("Getting confirmed order details for customer {}", customerId);
+        
+        
+        List<String> allowedStatuses = List.of("ORDER_CONFIRMED", "ORDER_SHIPPED");
+
+        List<Orders> orders = orderRepository.findByCustomerId(customerId).stream()
+                .filter(order -> allowedStatuses.contains(order.getStatus()))
+                .toList();
+
+        return orders.stream()
+                .map(order -> {
+                    OrderResponse dto = new OrderResponse();
+                    dto.setOrderNumber(order.getOrderNumber());
+                    dto.setStatus(order.getStatus());
+                    dto.setTransactionId(order.getTransactionId());
+                    dto.setTrackingNumber(order.getTrackingNumber());
+                    dto.setOrderedAt(order.getOrderedAt());
+                    return dto;
+                })
+                .toList();
     }
 
-
-	public List<OrderResponse> getAllOrders( Integer customerId) {
-		log.info("Getting all the order details");
-		List<Orders> orders = orderRepository.findByCustomerId(customerId);
-	    return orders.stream()
-	            .map(order -> {
-	                OrderResponse dto = new OrderResponse();
-	                dto.setOrderNumber(order.getOrderNumber());
-	                dto.setStatus(order.getStatus());
-	                dto.setTransactionId(order.getTransactionId());
-	                dto.setTrackingNumber(order.getTrackingNumber());
-	                return dto;
-	            })
-	            .toList();
-		
-	}
 
 
 }

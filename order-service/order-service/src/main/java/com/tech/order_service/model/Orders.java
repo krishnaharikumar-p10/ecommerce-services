@@ -1,6 +1,7 @@
 package com.tech.order_service.model;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -32,6 +33,7 @@ public class Orders {
 	private String status;
 	private String trackingNumber;
 	private String transactionId;
+    private LocalDateTime orderedAt;	
 	@OneToMany(cascade =CascadeType.ALL)
 	@JoinColumn(name = "orders_id")
 	private List<OrderItems> orderItems;

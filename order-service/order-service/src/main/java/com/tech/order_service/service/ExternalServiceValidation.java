@@ -24,50 +24,82 @@ public class ExternalServiceValidation {
     private final ProductServiceClient productServiceClient;
     private final InventoryServiceClient inventoryServiceClient;
 
-    @Retry(name = "productServiceRetry", fallbackMethod = "productFallback")
-    @CircuitBreaker(name = "productServiceCB", fallbackMethod = "productFallback")
-    public ProductResponse validateProduct(String skuCode, String correlationId) {
-        try {
-            return productServiceClient.getProduct(skuCode, correlationId)
-                    .orElseThrow(() -> new ProductUnavailableException("Product not found: " + skuCode));
-        } catch (ProductUnavailableException ex) {
+    @Retry(name = "productServiceRetry", fallbackMethod = "cartProductFallback")
+    @CircuitBreaker(name = "productServiceCB", fallbackMethod = "cartProductFallback")
+    public ProductResponse validateProductForCart(String skuCode, String correlationId) {
+        try {       
+            return productServiceClient.getProduct(skuCode, correlationId);
+        } catch (Exception ex) {   
             throw ex;
-        } catch (Exception ex) {
-            throw new RuntimeException("System failure", ex);
         }
     }
 
-     public ProductResponse productFallback(String skuCode, String correlationId, Throwable t) {
-         if (t instanceof ProductUnavailableException) {
-             throw (ProductUnavailableException) t; 
-         }
-         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                 "Product service unavailable for SKU: " + skuCode, t); 
-     }
+    public ProductResponse cartProductFallback(String skuCode, String correlationId, Throwable t) {
+       
+        ProductResponse fallback = new ProductResponse();
+        fallback.setSkuCode(skuCode);
+        fallback.setName("Product info unavailable");
+        fallback.setPrice(null); 
+        return fallback;
+    }
+    
+    @Retry(name = "productServiceRetry", fallbackMethod = "productFallback")
+    @CircuitBreaker(name = "productServiceCB", fallbackMethod = "productFallback")
+    public ProductResponse validateProduct(String skuCode, String correlationId) {
+    	ProductResponse product;
+        try {
+            product = productServiceClient.getProduct(skuCode, correlationId);
+        } catch (feign.FeignException.NotFound ex) {
+            // Business exception, don't retry
+            throw new ProductUnavailableException("Product unavailable: " + skuCode);
+        } catch (Exception ex) {
+            // Only retry/fallback on real service errors
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Unable to fetch product information at the moment. Please try again later.", ex);
+        }
 
-     @Retry(name = "inventoryServiceRetry", fallbackMethod = "inventoryFallback")
-     @CircuitBreaker(name = "inventoryServiceCB", fallbackMethod = "inventoryFallback")
-     public InventoryResponse validateInventory(String skuCode, int quantity, String correlationId) {
-         try {
-             InventoryResponse inventory = inventoryServiceClient.getInventory(skuCode, correlationId);
-             if (inventory == null || inventory.getAvailableQuantity() < quantity) {
-                 throw new OutOfStockException("Out of stock: " + skuCode);
-             }
-             return inventory;
-         } catch (OutOfStockException ex) {
-             throw ex; 
-         } catch (Exception ex) {
-             throw new RuntimeException("System failure", ex); 
-         }
-     }
+        if (product == null) {
+            throw new ProductUnavailableException("Product unavailable: " + skuCode);
+        }
 
-     public InventoryResponse inventoryFallback(String skuCode, int quantity, String correlationId, Throwable t) {
-         if (t instanceof OutOfStockException) {
-             throw (OutOfStockException) t;
-         }
-         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                 "Inventory service unavailable for SKU: " + skuCode, t);
-     }
+        return product;
+    }
+
+    public ProductResponse productFallback(String skuCode, String correlationId, Throwable t) {
+        if (t instanceof ProductUnavailableException) {        
+            throw (ProductUnavailableException) t;
+        }
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+        		"Unable to fetch product information at the moment. Please try again later.", t);
+    }
+
+    @Retry(name = "inventoryServiceRetry", fallbackMethod = "inventoryFallback")
+    @CircuitBreaker(name = "inventoryServiceCB", fallbackMethod = "inventoryFallback")
+    public InventoryResponse validateInventory(String skuCode, int quantity, String correlationId) {
+        InventoryResponse inventory;
+        try {
+            inventory = inventoryServiceClient.getInventory(skuCode, correlationId);
+        } catch (Exception ex) {
+            // Only catch real service errors
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Unable to process your request right now. Please try again later.", ex);
+        }
+
+        if (inventory == null || inventory.getAvailableQuantity() < quantity) {
+            throw new OutOfStockException("Out of stock: " + skuCode);
+        }
+
+        return inventory;
+    }
+
+    // Fallback is only for Resilience4j errors like network/service failures
+    public InventoryResponse inventoryFallback(String skuCode, int quantity, String correlationId, Throwable t) {
+        if (t instanceof OutOfStockException) {
+            throw (OutOfStockException) t;
+        }
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "Unable to process your request right now. Please try again later.", t);
+    }
 
     
 }

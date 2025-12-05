@@ -1,11 +1,14 @@
 package com.tech.order_service.exceptions;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -19,6 +22,15 @@ import org.springframework.http.ProblemDetail;
 @ControllerAdvice
 public class GlobalExceptionalHandler {
 
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors()
+            .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(errors);
+    }
+	
     @ExceptionHandler(ProductUnavailableException.class)
     public ResponseEntity<ProblemDetail> handleProductUnavailable(ProductUnavailableException ex, WebRequest request) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -64,6 +76,8 @@ public class GlobalExceptionalHandler {
 
         return ResponseEntity.status(statusCode.value()).body(problem);
     }
+    
+
 
     
     @ExceptionHandler(Exception.class)
